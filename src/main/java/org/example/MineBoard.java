@@ -150,6 +150,7 @@ public class MineBoard extends JComponent {
             for (int j=-1; j<2; j++){
                 if (i==0 && j==0){continue;}
                 BoardCoord neighbour_coord = pos.addOffset(i, j);
+                if (!neighbour_coord.isValid(width, height)) {continue;}
                 output.add(neighbour_coord.toIndex(width));
             }
         }
