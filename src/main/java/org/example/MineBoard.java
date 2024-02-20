@@ -265,9 +265,9 @@ public class MineBoard extends JComponent {
      */
     public Optional<Tile> TryAccess(BoardCoord pos){
         if (pos.isValid(width, height)) {
-            return Optional.empty();
-        } else {
             return Optional.of(tiles.get(pos.toIndex(width)));
+        } else {
+            return Optional.empty();
         }
     }
 
