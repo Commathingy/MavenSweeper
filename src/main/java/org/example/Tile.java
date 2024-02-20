@@ -8,10 +8,17 @@ public class Tile {
     public boolean is_held = false;
     public boolean is_flagged = false;
     public boolean is_hidden = true;
-    public boolean is_mine;
+    private boolean is_mine;
     public Optional<Integer> mine_neighbours = Optional.empty();
 
     public Tile(boolean is_mine){
+        this.is_mine = is_mine;
+    }
+
+    public boolean isMine(){
+        return this.is_mine;
+    }
+    public void setMine(boolean is_mine){
         this.is_mine = is_mine;
     }
 

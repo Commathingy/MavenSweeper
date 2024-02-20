@@ -88,7 +88,7 @@ public class MineBoard extends JComponent {
             //only have is_mine true if left_to_spawn is actually above 0 still
             boolean is_mine = Math.random() < ((float) left_to_spawn / (float) i) && (left_to_spawn > 0);
             left_to_spawn -= is_mine ? 1 : 0;
-            tile.is_mine = is_mine;
+            tile.setMine(is_mine);
             i--;
         }
 
@@ -115,7 +115,7 @@ public class MineBoard extends JComponent {
                 //hit a mine and so lost
                 game_won = false;
             }
-            if (tile.is_hidden && !tile.is_mine){
+            if (tile.is_hidden && !tile.isMine()){
                 //there is an uncleared non mine tile
                 return;
             }
@@ -183,7 +183,7 @@ public class MineBoard extends JComponent {
                 if (first_flip){
                     first_flip = false;
                     Tile tile = tiles.get(pos.ToIndex(width));
-                    while (tile.is_mine){
+                    while (tile.isMine()){
                         ReplaceMines();
                     }
                 }
@@ -278,7 +278,7 @@ public class MineBoard extends JComponent {
 
                     Optional<Tile> neighbour = TryAccess(BoardCoord.FromCoord(coord.i + deli, coord.j + delj));
                     if (neighbour.isPresent()) {
-                        mine_neighbours += neighbour.get().is_mine ? 1 : 0;
+                        mine_neighbours += neighbour.get().isMine() ? 1 : 0;
                     }
                 }
             }
@@ -344,7 +344,7 @@ public class MineBoard extends JComponent {
         if (op_tile.isPresent() && !op_tile.get().is_flagged && op_tile.get().is_hidden){
             Tile tile = op_tile.get();
 
-            if (tile.is_mine){
+            if (tile.isMine()){
                 tile.hit = true;
                 HitMine();
                 return;
@@ -357,7 +357,7 @@ public class MineBoard extends JComponent {
                 for (int deli = -1; deli < 2; deli++) {
                     Optional<Tile> neighbour = TryAccess(BoardCoord.FromCoord(pos.i + deli, pos.j + delj));
                     if (neighbour.isPresent()) {
-                        mine_neighbours += neighbour.get().is_mine ? 1 : 0;
+                        mine_neighbours += neighbour.get().isMine() ? 1 : 0;
                     }
                 }
             }
