@@ -4,16 +4,59 @@ import java.awt.*;
 import java.util.Optional;
 
 public class Tile {
-    public boolean hit = false;
-    public boolean is_held = false;
-    public boolean is_flagged = false;
-    public boolean is_hidden = true;
+    private boolean hit = false;
+    private boolean is_held = false;
+    private boolean is_flagged = false;
+    private boolean is_hidden = true;
     private boolean is_mine;
-    public Optional<Integer> mine_neighbours = Optional.empty();
+    private int mine_neighbours = -1;
+
 
     public Tile(boolean is_mine){
         this.is_mine = is_mine;
     }
+
+    public boolean flipFlag(){
+        this.is_flagged ^= true;
+        return this.is_flagged;
+    }
+
+    public int mineNeighbours(){
+        return this.mine_neighbours;
+    }
+
+    public void setMineNeighbours(int mines){
+        this.mine_neighbours = mines;
+    }
+
+    public boolean isFlag(){
+        return this.is_flagged;
+    }
+
+    public boolean isHeld(){
+        return this.is_held;
+    }
+
+    public void setHeld(boolean is_held){
+        this.is_held = is_held;
+    }
+
+    public boolean isHidden(){
+        return this.is_hidden;
+    }
+
+    public void Reveal(){
+        this.is_hidden = false;
+    }
+
+    public void Hit(){
+        this.hit = true;
+    }
+
+    public boolean isHit(){
+        return this.hit;
+    }
+
 
     public boolean isMine(){
         return this.is_mine;
@@ -28,7 +71,7 @@ public class Tile {
            this.is_flagged = false;
            this.is_hidden = true;
            this.is_mine = false;
-           this.mine_neighbours = Optional.empty();
+           this.mine_neighbours = -1;
     }
     public void draw(Graphics2D g2d, int i, int j, DrawInfo draw_info){
         int position_x = i * 30;
@@ -44,8 +87,8 @@ public class Tile {
             DrawTools.draw_flagged(g2d, position_x, position_y, draw_info.flag_sprite, true);
         } else if (is_mine) {
             DrawTools.draw_mine(g2d, position_x, position_y, draw_info.mine_sprite, hit);
-        } else if (mine_neighbours.isPresent() && mine_neighbours.get()>0) {
-            DrawTools.draw_number(g2d, position_x, position_y, mine_neighbours.get());
+        } else if (mine_neighbours>0) {
+            DrawTools.draw_number(g2d, position_x, position_y, mine_neighbours);
         } else {
             DrawTools.draw_revealed(g2d, position_x, position_y);
         }
