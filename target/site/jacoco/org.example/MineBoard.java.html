@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MineBoard.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">MavenSweeper</a> &gt; <a href="index.source.html" class="el_package">org.example</a> &gt; <span class="el_source">MineBoard.java</span></div><h1>MineBoard.java</h1><pre class="source lang-java linenums">package org.example;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.Ellipse2D;
+import java.util.ArrayList;
+import java.util.Optional;
+
+public class MineBoard extends JComponent {
+    private final ArrayList&lt;Tile&gt; tiles;
+    public final int width;
+    private final int window_width;
+    public final int height;
+    private final int num_mines;
+
+    /**
+     * The number of un-flagged mines, equal to (num_mines - no. flagged tiles)
+     */
+    private int unflagged;
+
+    /**
+     * Flag indicating if the current move is the first
+     */
+<span class="nc" id="L26">    private boolean first_flip = true;</span>
+
+    /**
+     * stores the buffered images of the mine and flag
+     */
+    private final DrawInfo draw_info;
+    
+    /**
+     * indicates whether the rest button is currently being held
+     */
+<span class="nc" id="L36">    private boolean reset_held = false;</span>
+    
+    /**
+     * The coordinate of the last pressed tile, if there is one
+     */
+<span class="nc" id="L41">    private Optional&lt;BoardCoord&gt; last_held = Optional.empty();</span>
+
+
+    /**
+     * Create a standard size board, 20x10 with 20 mines
+     */
+    public MineBoard() {
+<span class="nc" id="L48">        this(20, 10, 20);</span>
+<span class="nc" id="L49">    }</span>
+
+    /**
+     * Create a board with a custom size and number of mines
+     */
+<span class="nc" id="L54">    public MineBoard(int width, int height, int num_mines) {</span>
+<span class="nc" id="L55">        this.draw_info = new DrawInfo();</span>
+<span class="nc" id="L56">        this.num_mines = num_mines;</span>
+<span class="nc" id="L57">        this.width = width;</span>
+<span class="nc" id="L58">        this.window_width = 30*width;</span>
+<span class="nc" id="L59">        this.height = height;</span>
+<span class="nc" id="L60">        this.unflagged = num_mines;</span>
+<span class="nc" id="L61">        tiles = new ArrayList&lt;&gt;(width*height);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        for (int i = 0; i&lt;width*height; i++){</span>
+<span class="nc" id="L63">            tiles.add(new Tile(false));</span>
+        }
+<span class="nc" id="L65">        this.ResetTiles();</span>
+
+        //add the mouse listener
+<span class="nc" id="L68">        addMouseListener(new MouseListener() {</span>
+<span class="nc" id="L69">            public void mouseClicked(MouseEvent e) {}</span>
+<span class="nc" id="L70">            public void mousePressed(MouseEvent e) {PressMouse(e);}</span>
+<span class="nc" id="L71">            public void mouseReleased(MouseEvent e) {ReleaseMouse(e);}</span>
+<span class="nc" id="L72">            public void mouseEntered(MouseEvent e) {}</span>
+<span class="nc" id="L73">            public void mouseExited(MouseEvent e) {}</span>
+        });
+<span class="nc" id="L75">    }</span>
+
+    /**
+     * Moves the mines to be in different locations, but does not alter anything but the &lt;code&gt;is_mine&lt;/code&gt;
+     * property of each tile, so should only be used in situation where this is expected
+     */
+    private void ReplaceMines(){
+        //spawn mines using reservoir method
+<span class="nc" id="L83">        int left_to_spawn = num_mines;</span>
+<span class="nc" id="L84">        int i=width*height;</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        for (Tile tile : tiles){</span>
+            //chance to spawn mine tile is left_to_spawn/i
+            //since i = number of tiles left to create
+            //only have is_mine true if left_to_spawn is actually above 0 still
+<span class="nc bnc" id="L89" title="All 4 branches missed.">            boolean is_mine = Math.random() &lt; ((float) left_to_spawn / (float) i) &amp;&amp; (left_to_spawn &gt; 0);</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            left_to_spawn -= is_mine ? 1 : 0;</span>
+<span class="nc" id="L91">            tile.setMine(is_mine);</span>
+<span class="nc" id="L92">            i--;</span>
+<span class="nc" id="L93">        }</span>
+
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (left_to_spawn &gt; 0) {throw new RuntimeException(&quot;Error: Failed to spawn all mines&quot;);}</span>
+<span class="nc" id="L96">    }</span>
+
+    /**
+     * Resets the entire board, replacing the mines and resetting all relevant variables.
+     */
+    private void ResetTiles(){
+<span class="nc" id="L102">        unflagged = num_mines;</span>
+<span class="nc" id="L103">        first_flip = true;</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (Tile tile : tiles){</span>
+<span class="nc" id="L105">            tile.ResetTile();</span>
+<span class="nc" id="L106">        }</span>
+<span class="nc" id="L107">        ReplaceMines();</span>
+<span class="nc" id="L108">        repaint();</span>
+<span class="nc" id="L109">    }</span>
+
+    private void CheckGameEnd(){
+<span class="nc" id="L112">        boolean game_won = true;</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        for (Tile tile : tiles){</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            if (tile.hit) {</span>
+                //hit a mine and so lost
+<span class="nc" id="L116">                game_won = false;</span>
+            }
+<span class="nc bnc" id="L118" title="All 4 branches missed.">            if (tile.is_hidden &amp;&amp; !tile.isMine()){</span>
+                //there is an uncleared non mine tile
+<span class="nc" id="L120">                return;</span>
+            }
+<span class="nc" id="L122">        }</span>
+
+        //if we won, flag all hidden tiles
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (game_won){</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            for (Tile tile : tiles) {</span>
+<span class="nc" id="L127">                tile.is_flagged |= tile.is_hidden;</span>
+<span class="nc" id="L128">            }</span>
+        }
+
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        String outcome = game_won? &quot;You Won!&quot; : &quot;You Lost&quot;;</span>
+<span class="nc" id="L132">        this.paintComponent(getGraphics());</span>
+<span class="nc" id="L133">        int reply = JOptionPane.showConfirmDialog(null, new Object[]{&quot;Try again?&quot;}, outcome, JOptionPane.YES_NO_OPTION);</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (reply == 0) {</span>
+            //yes was pressed, so reset
+
+<span class="nc" id="L137">            ResetTiles();</span>
+        } else {
+<span class="nc" id="L139">            SwingUtilities.getWindowAncestor(this).dispose();</span>
+        }
+<span class="nc" id="L141">    }</span>
+
+    /**
+     * Converts the coordinates of mouse event to a board coordinate.
+     * &lt;p&gt;
+     * If the events position was outside the board, this will result in an invalid &lt;code&gt;BoardCoord&lt;/code&gt;
+     * &lt;/p&gt;
+     * @param e The event containing position info
+     * @return A &lt;code&gt;BoardCoord&lt;/code&gt; that corresponds to this position
+     */
+    private BoardCoord ScreenToTile(MouseEvent e){
+<span class="nc" id="L152">        int i = (e.getX() - 25) / 30;</span>
+<span class="nc" id="L153">        int j = (e.getY() - 105) / 30;</span>
+<span class="nc" id="L154">        return BoardCoord.FromCoord(i,j);</span>
+    }
+
+    private void ReleaseMouse(MouseEvent e){
+
+        //check if button 1 was released
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (!(e.getButton() == MouseEvent.BUTTON1)){</span>
+            //if not pressed just early return
+<span class="nc" id="L162">            return;</span>
+        }
+
+        //check for pressing reset
+<span class="nc bnc" id="L166" title="All 10 branches missed.">        if (e.getY()&gt;35 &amp;&amp; e.getY()&lt;65 &amp;&amp; e.getX()&lt;window_width/2 + 40 &amp;&amp; e.getX()&gt;window_width/2 + 10 &amp;&amp; reset_held) {</span>
+<span class="nc" id="L167">            reset_held = false;</span>
+<span class="nc" id="L168">            ResetTiles();</span>
+        }
+
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (last_held.isPresent()){</span>
+            //stop pressing the last held
+<span class="nc" id="L173">            tiles.get(last_held.get().ToIndex(width)).is_held = false;</span>
+
+            //get position of the release
+
+<span class="nc" id="L177">            BoardCoord pos = ScreenToTile(e);</span>
+
+            //check if release is in same place as press
+<span class="nc bnc" id="L180" title="All 2 branches missed.">            if (pos.ToIndex(width) == last_held.get().ToIndex(width)){</span>
+                //if so do the reveal logic
+                //first check if this is first click and we should rearrange mines
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                if (first_flip){</span>
+<span class="nc" id="L184">                    first_flip = false;</span>
+<span class="nc" id="L185">                    Tile tile = tiles.get(pos.ToIndex(width));</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                    while (tile.isMine()){</span>
+<span class="nc" id="L187">                        ReplaceMines();</span>
+                    }
+                }
+
+<span class="nc" id="L191">                StartCascade(pos);</span>
+            }
+<span class="nc" id="L193">            last_held = Optional.empty();</span>
+
+            //this should be the only point when we could have already won
+<span class="nc" id="L196">            CheckGameEnd();</span>
+        }
+<span class="nc" id="L198">        repaint();</span>
+<span class="nc" id="L199">    }</span>
+    private void PressMouse(MouseEvent e){
+
+        //in this case we pressed the reset button
+<span class="nc bnc" id="L203" title="All 2 branches missed.">        if (e.getButton() == MouseEvent.BUTTON1) {</span>
+<span class="nc bnc" id="L204" title="All 8 branches missed.">            if (e.getY()&gt;35 &amp;&amp; e.getY()&lt;65 &amp;&amp; e.getX()&lt;window_width/2 + 40 &amp;&amp; e.getX()&gt;window_width/2 + 10) {</span>
+<span class="nc" id="L205">                reset_held = true;</span>
+<span class="nc" id="L206">                return;</span>
+            }
+        }
+
+        //check for pressing settings
+<span class="nc bnc" id="L211" title="All 8 branches missed.">        if (e.getY()&gt;35 &amp;&amp; e.getY()&lt;65 &amp;&amp; e.getX()&lt;window_width + 5 &amp;&amp; e.getX()&gt;window_width - 25) {</span>
+<span class="nc" id="L212">            Component container = SwingUtilities.getWindowAncestor(this);</span>
+<span class="nc" id="L213">            container.setVisible(false);</span>
+<span class="nc" id="L214">            Main.run_once((JFrame) container);</span>
+<span class="nc" id="L215">            return;</span>
+        }
+
+
+<span class="nc" id="L219">        BoardCoord pos = ScreenToTile(e);</span>
+
+        //check for left or right click
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        if (e.getButton() == MouseEvent.BUTTON1){</span>
+<span class="nc" id="L223">            Optional&lt;Tile&gt; tile = TryAccess(pos);</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">            if (tile.isPresent()){</span>
+<span class="nc" id="L225">                last_held = Optional.of(pos);</span>
+<span class="nc" id="L226">                tile.get().is_held = true;</span>
+            }
+<span class="nc bnc" id="L228" title="All 4 branches missed.">        } else if (e.getButton() == MouseEvent.BUTTON3 &amp;&amp; last_held.isEmpty()){</span>
+            //we check for empty last held since m1 has precedence over m2
+<span class="nc" id="L230">            Optional&lt;Tile&gt; op_tile = TryAccess(pos);</span>
+            //check if the tile is still hidden
+<span class="nc bnc" id="L232" title="All 4 branches missed.">            if (op_tile.isPresent() &amp;&amp; op_tile.get().is_hidden){</span>
+                //flip the flagged status
+<span class="nc" id="L234">                op_tile.get().is_flagged ^= true;</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">                unflagged -= op_tile.get().is_flagged ? 1 : -1;</span>
+            }
+        }
+
+<span class="nc" id="L239">        repaint();</span>
+<span class="nc" id="L240">    }</span>
+
+    /**
+     * Get the tile from the board with the given coordinate, if it is valid
+     * @param pos The coordinate of the tile desired
+     * @return An optional value that contains the tile if the coordinate was valid, otherwise empty
+     */
+    private Optional&lt;Tile&gt; TryAccess(BoardCoord pos){
+<span class="nc bnc" id="L248" title="All 2 branches missed.">        if (!isValidCoord(pos)) {</span>
+<span class="nc" id="L249">            return Optional.empty();</span>
+        } else {
+<span class="nc" id="L251">            return Optional.of(tiles.get(width * pos.j + pos.i));</span>
+        }
+    }
+
+    /**
+     * Returns true if the given coordinate is a valid coordinate on the board
+     * @param pos The coordinate to check
+     * @return &lt;code&gt;true&lt;/code&gt; if coordinate is valid, &lt;code&gt;false&lt;/code&gt; otherwise
+     */
+    private boolean isValidCoord(BoardCoord pos){
+<span class="nc bnc" id="L261" title="All 8 branches missed.">        return (pos.i&gt;=0 &amp;&amp; pos.i&lt;width &amp;&amp; pos.j&gt;=0 &amp;&amp; pos.j&lt;height);</span>
+    }
+
+    /**
+     * Called when a tile with a mine is revealed by &lt;code&gt;CascadeFrom&lt;/code&gt;.
+     * Sets all tiles except flagged tiles to be revealed and calculates the appropriate value
+     * for &lt;code&gt;mine_neighbours&lt;/code&gt;
+     */
+    private void HitMine(){
+<span class="nc" id="L270">        int i = 0;</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">        for (Tile tile : tiles){</span>
+<span class="nc" id="L272">            tile.is_hidden = false;</span>
+
+<span class="nc" id="L274">            int mine_neighbours = 0;</span>
+<span class="nc" id="L275">            BoardCoord coord = BoardCoord.FromIndex(i, width);</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">            for (int delj = -1; delj &lt; 2; delj++) {</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">                for (int deli = -1; deli &lt; 2; deli++) {</span>
+
+<span class="nc" id="L279">                    Optional&lt;Tile&gt; neighbour = TryAccess(BoardCoord.FromCoord(coord.i + deli, coord.j + delj));</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">                    if (neighbour.isPresent()) {</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">                        mine_neighbours += neighbour.get().isMine() ? 1 : 0;</span>
+                    }
+                }
+            }
+<span class="nc" id="L285">            tile.mine_neighbours = Optional.of(mine_neighbours);</span>
+<span class="nc" id="L286">            i++;</span>
+<span class="nc" id="L287">        }</span>
+<span class="nc" id="L288">    }</span>
+
+    /**
+     * Start a cascade from the current tile.
+     * &lt;p&gt;
+     * If a tile is hidden, start a cascade at the given position with &lt;code&gt;CascadeFrom&lt;/code&gt;
+     * If the tile is already revealed and the number on it is less than or equal to the number of adjacent flags, it
+     * will call &lt;code&gt;CascadeFrom&lt;/code&gt; on all the adjacent tiles
+     * &lt;/p&gt;
+     *
+     * @param pos The position at which the cascade is beginning
+     */
+    private void StartCascade(BoardCoord pos){
+<span class="nc" id="L301">        Optional&lt;Tile&gt; tile = TryAccess(pos);</span>
+        //we start a cascade if the tile is hidden and a 0
+        //or if it is revealed, and the number of flags around it is equal to the number of mines around it
+<span class="nc bnc" id="L304" title="All 4 branches missed.">        if (tile.isPresent() &amp;&amp; !tile.get().is_flagged){</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">            if (tile.get().is_hidden){</span>
+<span class="nc" id="L306">                CascadeFrom(pos);</span>
+<span class="nc" id="L307">                return;</span>
+            }
+            //calculate number of flags around
+<span class="nc" id="L310">            int flag_neighbours = 0;</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">            for (int delj = -1; delj&lt;2; delj++){</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">                for (int deli = -1; deli&lt;2; deli++){</span>
+<span class="nc" id="L313">                    Optional&lt;Tile&gt; neighbour = TryAccess(BoardCoord.FromCoord(pos.i+deli, pos.j+delj));</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">                    if (neighbour.isPresent()){</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">                        flag_neighbours += neighbour.get().is_flagged ? 1 : 0;</span>
+                    }
+                }
+            }
+            //if there are at least as many flags as the number, cascade
+<span class="nc bnc" id="L320" title="All 4 branches missed.">            if (tile.get().mine_neighbours.isPresent() &amp;&amp; flag_neighbours &gt;= tile.get().mine_neighbours.get()){</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">                for (int deli = -1; deli &lt; 2; deli++) {</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">                    for (int delj = -1; delj &lt; 2; delj++) {</span>
+<span class="nc bnc" id="L323" title="All 4 branches missed.">                        if (deli == 0 &amp;&amp; delj == 0) {</span>
+<span class="nc" id="L324">                            continue;</span>
+                        }
+<span class="nc" id="L326">                        CascadeFrom(BoardCoord.FromCoord(pos.i + deli, pos.j + delj));</span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L331">    }</span>
+
+    /**
+     * Cascading reveal of tiles on the board.
+     * &lt;p&gt;
+     * If the tile is hidden and not flagged, it will be revealed,
+     * and if it is a 0, it will reveal all the tiles next to it via this method.
+     * &lt;/p&gt;
+     *
+     * @param pos The position of the tile the cascade is currently happening at
+     */
+    private void CascadeFrom(BoardCoord pos){
+<span class="nc" id="L343">        Optional&lt;Tile&gt; op_tile = TryAccess(pos);</span>
+<span class="nc bnc" id="L344" title="All 6 branches missed.">        if (op_tile.isPresent() &amp;&amp; !op_tile.get().is_flagged &amp;&amp; op_tile.get().is_hidden){</span>
+<span class="nc" id="L345">            Tile tile = op_tile.get();</span>
+
+<span class="nc bnc" id="L347" title="All 2 branches missed.">            if (tile.isMine()){</span>
+<span class="nc" id="L348">                tile.hit = true;</span>
+<span class="nc" id="L349">                HitMine();</span>
+<span class="nc" id="L350">                return;</span>
+            }
+
+<span class="nc" id="L353">            tile.is_hidden = false;</span>
+            //first check the number of neighbouring mines
+<span class="nc" id="L355">            int mine_neighbours = 0;</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">            for (int delj = -1; delj &lt; 2; delj++) {</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">                for (int deli = -1; deli &lt; 2; deli++) {</span>
+<span class="nc" id="L358">                    Optional&lt;Tile&gt; neighbour = TryAccess(BoardCoord.FromCoord(pos.i + deli, pos.j + delj));</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">                    if (neighbour.isPresent()) {</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">                        mine_neighbours += neighbour.get().isMine() ? 1 : 0;</span>
+                    }
+                }
+            }
+<span class="nc" id="L364">            tile.mine_neighbours = Optional.of(mine_neighbours);</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">            if (mine_neighbours == 0) {</span>
+                //now cascade is there were no mine neighbours
+<span class="nc bnc" id="L367" title="All 2 branches missed.">                for (int deli = -1; deli &lt; 2; deli++) {</span>
+<span class="nc bnc" id="L368" title="All 2 branches missed.">                    for (int delj = -1; delj &lt; 2; delj++) {</span>
+<span class="nc bnc" id="L369" title="All 4 branches missed.">                        if (deli == 0 &amp;&amp; delj == 0) {</span>
+<span class="nc" id="L370">                            continue;</span>
+                        }
+<span class="nc" id="L372">                        CascadeFrom(BoardCoord.FromCoord(pos.i + deli, pos.j + delj));</span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L377">    }</span>
+
+
+    protected void paintComponent(Graphics g){
+<span class="nc" id="L381">        Graphics2D g2d = (Graphics2D) g;</span>
+
+        //draw the shading
+<span class="nc" id="L384">        DrawTools.DrawShadedRegion(0, 0, window_width + 50, height*30 + 130, 5, false, g2d);</span>
+<span class="nc" id="L385">        DrawTools.DrawShadedRegion(20, 20, window_width + 10, 65, 5, true, g2d);</span>
+<span class="nc" id="L386">        DrawTools.DrawShadedRegion(20, 100, window_width + 10, height*30 + 10, 5, true, g2d);</span>
+
+<span class="nc" id="L388">        g2d.translate(0, 20);</span>
+        //draw reset button
+<span class="nc" id="L390">        Ellipse2D.Float reset_button = new Ellipse2D.Float(window_width/2 + 10, 15, 30, 30);</span>
+<span class="nc" id="L391">        g2d.setColor(Color.YELLOW);</span>
+<span class="nc" id="L392">        g2d.fill(reset_button);</span>
+
+        //draw settings button
+<span class="nc" id="L395">        Ellipse2D.Float settings_button = new Ellipse2D.Float(window_width - 25, 15, 30, 30);</span>
+<span class="nc" id="L396">        g2d.setColor(Color.DARK_GRAY);</span>
+<span class="nc" id="L397">        g2d.fill(settings_button);</span>
+
+        //draw the mine counter
+<span class="nc" id="L400">        g2d.setFont(new Font(&quot;SansSerif&quot;, Font.BOLD, 30));</span>
+<span class="nc" id="L401">        g2d.setColor(Color.BLACK);</span>
+<span class="nc" id="L402">        g2d.drawString(Integer.toString(unflagged), 75, 41);</span>
+<span class="nc" id="L403">        g2d.drawImage(draw_info.mine_sprite, 40, 20, null);</span>
+
+        //translate downwards to start drawing tiles
+<span class="nc" id="L406">        g2d.translate(25, 85);</span>
+        //draw the tiles
+<span class="nc bnc" id="L408" title="All 2 branches missed.">        for (int j = 0; j&lt;height; j++){</span>
+<span class="nc bnc" id="L409" title="All 2 branches missed.">            for (int i = 0; i&lt;width; i++){</span>
+                //should be present since i and j are in valid range
+<span class="nc" id="L411">                tiles.get(BoardCoord.FromCoord(i, j).ToIndex(width)).draw(g2d, i, j, draw_info);</span>
+            }
+        }
+<span class="nc" id="L414">    }</span>
+}
+
+
+class BoardCoord{
+    public int i;
+    public int j;
+
+    /**
+     * Converts this coordinate into the index in a list which corresponds to
+     * this coordinate for a board with the given width
+     * @param width The width of the board
+     * @return The index in a 1D list that corresponds to this coordinate
+     */
+    public int ToIndex(int width){
+<span class="nc" id="L429">        return i + j * width;</span>
+    }
+
+    /**
+     * @param i The horizontal position on the board
+     * @param j The vertical position on the board
+     */
+<span class="nc" id="L436">    private BoardCoord(int i, int j){</span>
+<span class="nc" id="L437">        this.i = i;</span>
+<span class="nc" id="L438">        this.j = j;</span>
+<span class="nc" id="L439">    }</span>
+
+    /**
+     * @param i The horizontal position on the board
+     * @param j The vertical position on the board
+     */
+    public static BoardCoord FromCoord(int i, int j){
+<span class="nc" id="L446">        return new BoardCoord(i,j);</span>
+    }
+
+    /**
+     * Converts from an index for a list to a 2D coordinate
+     * @param index The index in the list for the tile
+     * @param width The width of the board this coordinate corresponds to
+     * @return The coordinate corresponding to the given index
+     */
+    public static BoardCoord FromIndex(int index, int width){
+<span class="nc" id="L456">        int i = index % width;</span>
+<span class="nc" id="L457">        int j = index / width;</span>
+<span class="nc" id="L458">        return new BoardCoord(i,j);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

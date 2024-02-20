@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DrawTools.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">MavenSweeper</a> &gt; <a href="index.source.html" class="el_package">org.example</a> &gt; <span class="el_source">DrawTools.java</span></div><h1>DrawTools.java</h1><pre class="source lang-java linenums">package org.example;
+
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+
+<span class="nc" id="L7">public class DrawTools {</span>
+<span class="nc" id="L8">    private static final Color dark_colour = new Color(128, 128, 128);</span>
+<span class="nc" id="L9">    private static final Color medium_colour = new Color(192, 192, 192);</span>
+<span class="nc" id="L10">    private static final Color light_colour = new Color(255, 255, 255);</span>
+<span class="nc" id="L11">    private static final Color[] colours = new Color[]{</span>
+            new Color(0, 0, 255),
+            new Color(0, 128, 0),
+            new Color(255, 0, 0),
+            new Color(0, 0, 128),
+            new Color(128, 0, 0),
+            new Color(0, 128, 128),
+            new Color(0, 0, 0),
+            new Color(128, 0, 128)
+    };
+
+    public static void DrawShadedRegion(int x, int y, int w, int h, int bw, boolean reversed, Graphics2D g2d){
+<span class="nc bnc" id="L23" title="All 2 branches missed.">        Color c1 = reversed ? dark_colour : light_colour;</span>
+<span class="nc bnc" id="L24" title="All 2 branches missed.">        Color c2 = reversed ? light_colour : dark_colour;</span>
+
+        //start with bottom and right shade with a single rectangle
+<span class="nc" id="L27">        Rectangle2D.Float main_rect = new Rectangle2D.Float(x, y, w, h);</span>
+<span class="nc" id="L28">        g2d.setColor(c2);</span>
+<span class="nc" id="L29">        g2d.fill(main_rect);</span>
+
+        //top and left shading
+<span class="nc" id="L32">        Rectangle2D.Float top_rect = new Rectangle2D.Float(x, y, w - bw, bw);</span>
+<span class="nc" id="L33">        Rectangle2D.Float left_rect = new Rectangle2D.Float(x, y, bw, h - bw);</span>
+<span class="nc" id="L34">        g2d.setColor(c1);</span>
+<span class="nc" id="L35">        g2d.fill(top_rect);</span>
+<span class="nc" id="L36">        g2d.fill(left_rect);</span>
+<span class="nc" id="L37">        g2d.fillPolygon(new int[]{x+w-bw, x+w, x+w-bw}, new int[]{y, y, y+bw},3);</span>
+<span class="nc" id="L38">        g2d.fillPolygon(new int[]{x, x+bw, x}, new int[]{y+h-bw, y+h-bw, y+h},3);</span>
+
+        //inner region
+<span class="nc" id="L41">        Rectangle2D.Float inner_rect = new Rectangle2D.Float(x+bw, y+bw, w - 2*bw, h - 2*bw);</span>
+<span class="nc" id="L42">        g2d.setColor(medium_colour);</span>
+<span class="nc" id="L43">        g2d.fill(inner_rect);</span>
+<span class="nc" id="L44">    }</span>
+
+    static void draw_hidden(Graphics2D g2d, int posx, int posy){
+<span class="nc" id="L47">        DrawTools.DrawShadedRegion(posx, posy, 30, 30, 3, false, g2d);</span>
+<span class="nc" id="L48">    }</span>
+    static void draw_flagged(Graphics2D g2d, int posx, int posy, BufferedImage flag_sprite, boolean crossed){
+<span class="nc" id="L50">        draw_hidden(g2d, posx, posy);</span>
+<span class="nc" id="L51">        g2d.drawImage(flag_sprite, posx + 5, posy + 5, null);</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (crossed){</span>
+<span class="nc" id="L53">            g2d.setColor(Color.RED);</span>
+<span class="nc" id="L54">            g2d.drawLine(posx, posy, posx+30, posy+30);</span>
+        }
+<span class="nc" id="L56">    }</span>
+
+    static void draw_revealed(Graphics2D g2d, int posx, int posy){
+<span class="nc" id="L59">        Rectangle2D.Float main_rect = new Rectangle2D.Float(posx, posy, 30, 30);</span>
+<span class="nc" id="L60">        g2d.setColor(medium_colour);</span>
+<span class="nc" id="L61">        g2d.fill(main_rect);</span>
+<span class="nc" id="L62">        g2d.setColor(dark_colour);</span>
+<span class="nc" id="L63">        g2d.drawLine(posx, posy, posx + 30, posy);</span>
+<span class="nc" id="L64">        g2d.drawLine(posx, posy, posx, posy + 30);</span>
+<span class="nc" id="L65">    }</span>
+    static void draw_number(Graphics2D g2d, int posx, int posy, int mines){
+<span class="nc" id="L67">        draw_revealed(g2d, posx, posy);</span>
+<span class="nc" id="L68">        Color color = colours[mines-1];</span>
+<span class="nc" id="L69">        g2d.setColor(color);</span>
+<span class="nc" id="L70">        g2d.drawString(Integer.toString(mines), posx + 7, posy + 26);</span>
+<span class="nc" id="L71">    }</span>
+
+    static void draw_mine(Graphics2D g2d, int posx, int posy, BufferedImage mine_sprite, boolean hit){
+<span class="nc" id="L74">        draw_revealed(g2d, posx, posy);</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (hit) {</span>
+<span class="nc" id="L76">            g2d.setColor(Color.RED);</span>
+<span class="nc" id="L77">            Rectangle2D.Float main_rect = new Rectangle2D.Float(posx+1, posy+1, 29, 29);</span>
+<span class="nc" id="L78">            g2d.fill(main_rect);</span>
+        }
+<span class="nc" id="L80">        g2d.drawImage(mine_sprite, posx + 5, posy + 5, null);</span>
+<span class="nc" id="L81">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

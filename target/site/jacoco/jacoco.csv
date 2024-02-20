@@ -1,0 +1,11 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+MavenSweeper,org.example,Main,207,0,0,0,39,0,4,0,4,0
+MavenSweeper,org.example,DrawInfo,77,0,0,0,14,0,1,0,1,0
+MavenSweeper,org.example,Tile,115,24,20,0,25,9,13,2,3,2
+MavenSweeper,org.example,BoardCoord,37,0,0,0,9,0,4,0,4,0
+MavenSweeper,org.example,Main.new ChangeListener() {...},17,0,0,0,3,0,2,0,2,0
+MavenSweeper,org.example,Main.new ChangeListener() {...},17,0,0,0,3,0,2,0,2,0
+MavenSweeper,org.example,DrawTools,422,0,8,0,48,0,12,0,8,0
+MavenSweeper,org.example,MineBoard.new MouseListener() {...},19,0,0,0,6,0,6,0,6,0
+MavenSweeper,org.example,MineBoard,974,0,158,0,176,0,93,0,14,0
+MavenSweeper,org.example,Main.new ChangeListener() {...},17,0,0,0,3,0,2,0,2,0

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DrawInfo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">MavenSweeper</a> &gt; <a href="index.source.html" class="el_package">org.example</a> &gt; <span class="el_source">DrawInfo.java</span></div><h1>DrawInfo.java</h1><pre class="source lang-java linenums">package org.example;
+
+import javax.imageio.ImageIO;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+public class DrawInfo {
+
+    public BufferedImage mine_sprite;
+    public BufferedImage flag_sprite;
+
+<span class="nc" id="L14">    public DrawInfo(){</span>
+<span class="nc" id="L15">        AffineTransform afft = new AffineTransform();</span>
+<span class="nc" id="L16">        afft.scale(0.5, 0.5);</span>
+<span class="nc" id="L17">        AffineTransformOp afft_op = new AffineTransformOp(afft, AffineTransformOp.TYPE_BILINEAR);</span>
+
+        try{
+<span class="nc" id="L20">            BufferedImage big_mine_sprite = ImageIO.read(new File(&quot;./src/main/resources/Mine.png&quot;));</span>
+<span class="nc" id="L21">            BufferedImage big_flag_sprite = ImageIO.read(new File(&quot;./src/main/resources/Flag.png&quot;));</span>
+
+<span class="nc" id="L23">            int w = big_mine_sprite.getWidth();</span>
+<span class="nc" id="L24">            int h = big_mine_sprite.getHeight();</span>
+
+<span class="nc" id="L26">            mine_sprite = new BufferedImage(w/2, h/2, big_mine_sprite.getType());</span>
+<span class="nc" id="L27">            flag_sprite = new BufferedImage(w/2, h/2, big_flag_sprite.getType());</span>
+
+<span class="nc" id="L29">            mine_sprite = afft_op.filter(big_mine_sprite, mine_sprite);</span>
+<span class="nc" id="L30">            flag_sprite = afft_op.filter(big_flag_sprite, flag_sprite);</span>
+<span class="nc" id="L31">        } catch (Exception ignored){}</span>
+
+
+
+<span class="nc" id="L35">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

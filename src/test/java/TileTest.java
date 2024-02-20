@@ -7,7 +7,7 @@ import java.util.Optional;
 public class TileTest {
 
     @Test
-    public void ConstructorTest(){
+    public void testIsMine(){
         Tile tile = new Tile(false);
         Assertions.assertFalse(tile.isMine(), "tile should not be a mine");
     }

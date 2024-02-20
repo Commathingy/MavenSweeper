@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Tile.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">MavenSweeper</a> &gt; <a href="index.source.html" class="el_package">org.example</a> &gt; <span class="el_source">Tile.java</span></div><h1>Tile.java</h1><pre class="source lang-java linenums">package org.example;
+
+import java.awt.*;
+import java.util.Optional;
+
+public class Tile {
+<span class="fc" id="L7">    public boolean hit = false;</span>
+<span class="fc" id="L8">    public boolean is_held = false;</span>
+<span class="fc" id="L9">    public boolean is_flagged = false;</span>
+<span class="fc" id="L10">    public boolean is_hidden = true;</span>
+    private boolean is_mine;
+<span class="fc" id="L12">    public Optional&lt;Integer&gt; mine_neighbours = Optional.empty();</span>
+
+<span class="fc" id="L14">    public Tile(boolean is_mine){</span>
+<span class="fc" id="L15">        this.is_mine = is_mine;</span>
+<span class="fc" id="L16">    }</span>
+
+    public boolean isMine(){
+<span class="fc" id="L19">        return this.is_mine;</span>
+    }
+    public void setMine(boolean is_mine){
+<span class="nc" id="L22">        this.is_mine = is_mine;</span>
+<span class="nc" id="L23">    }</span>
+
+    public void ResetTile(){
+<span class="nc" id="L26">           this.hit = false;</span>
+<span class="nc" id="L27">           this.is_held = false;</span>
+<span class="nc" id="L28">           this.is_flagged = false;</span>
+<span class="nc" id="L29">           this.is_hidden = true;</span>
+<span class="nc" id="L30">           this.is_mine = false;</span>
+<span class="nc" id="L31">           this.mine_neighbours = Optional.empty();</span>
+<span class="nc" id="L32">    }</span>
+    public void draw(Graphics2D g2d, int i, int j, DrawInfo draw_info){
+<span class="nc" id="L34">        int position_x = i * 30;</span>
+<span class="nc" id="L35">        int position_y = j * 30;</span>
+
+<span class="nc bnc" id="L37" title="All 4 branches missed.">        if (is_hidden &amp;&amp; is_flagged){</span>
+<span class="nc" id="L38">            DrawTools.draw_flagged(g2d, position_x, position_y, draw_info.flag_sprite, false);</span>
+<span class="nc bnc" id="L39" title="All 4 branches missed.">        } else if (is_hidden &amp;&amp; is_held) {</span>
+<span class="nc" id="L40">            DrawTools.draw_revealed(g2d, position_x, position_y);</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        } else if (is_hidden) {</span>
+<span class="nc" id="L42">            DrawTools.draw_hidden(g2d, position_x, position_y);</span>
+<span class="nc bnc" id="L43" title="All 4 branches missed.">        } else if (is_flagged &amp;&amp; !is_mine){ //this case should only happen at the very end when we force reveal tiles</span>
+<span class="nc" id="L44">            DrawTools.draw_flagged(g2d, position_x, position_y, draw_info.flag_sprite, true);</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        } else if (is_mine) {</span>
+<span class="nc" id="L46">            DrawTools.draw_mine(g2d, position_x, position_y, draw_info.mine_sprite, hit);</span>
+<span class="nc bnc" id="L47" title="All 4 branches missed.">        } else if (mine_neighbours.isPresent() &amp;&amp; mine_neighbours.get()&gt;0) {</span>
+<span class="nc" id="L48">            DrawTools.draw_number(g2d, position_x, position_y, mine_neighbours.get());</span>
+        } else {
+<span class="nc" id="L50">            DrawTools.draw_revealed(g2d, position_x, position_y);</span>
+        }
+<span class="nc" id="L52">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
