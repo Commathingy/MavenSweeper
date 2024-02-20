@@ -1,8 +1,8 @@
 package org.example;
 
 public class BoardCoord {
-    public final int i;
-    public final int j;
+    private final int i;
+    private final int j;
 
     /**
      * Converts this coordinate into the index in a list which corresponds to
@@ -10,8 +10,16 @@ public class BoardCoord {
      * @param width The width of the board
      * @return The index in a 1D list that corresponds to this coordinate
      */
-    public int ToIndex(int width){
+    public int toIndex(int width){
         return i + j * width;
+    }
+
+    public BoardCoord addOffset(int i, int j){
+        return new BoardCoord(this.i + i, this.j + j);
+    }
+
+    public boolean isValid(int width, int height){
+        return i>=0 && i<width && j>=0 && j<height;
     }
 
     /**
@@ -27,7 +35,7 @@ public class BoardCoord {
      * @param i The horizontal position on the board
      * @param j The vertical position on the board
      */
-    public static BoardCoord FromCoord(int i, int j){
+    public static BoardCoord fromCoord(int i, int j){
         return new BoardCoord(i,j);
     }
 
@@ -37,7 +45,7 @@ public class BoardCoord {
      * @param width The width of the board this coordinate corresponds to
      * @return The coordinate corresponding to the given index
      */
-    public static BoardCoord FromIndex(int index, int width){
+    public static BoardCoord fromIndex(int index, int width){
         int i = index % width;
         int j = index / width;
         return new BoardCoord(i,j);

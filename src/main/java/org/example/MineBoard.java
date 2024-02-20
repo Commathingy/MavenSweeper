@@ -92,7 +92,7 @@ public class MineBoard extends JComponent {
         //place numbers on all tiles
         for (int j = 0; j < width*height; j++){
             Tile tile = tiles.get(j);
-            tile.setMineNeighbours(mineNeighbours(BoardCoord.FromIndex(j, width)));
+            tile.setMineNeighbours(mineNeighbours(BoardCoord.fromIndex(j, width)));
         }
 
         if (left_to_spawn > 0) {throw new RuntimeException("Error: Failed to spawn all mines");}
@@ -141,17 +141,16 @@ public class MineBoard extends JComponent {
     private BoardCoord ScreenToTile(MouseEvent e){
         int i = (e.getX() - 25) / 30;
         int j = (e.getY() - 105) / 30;
-        return BoardCoord.FromCoord(i,j);
+        return BoardCoord.fromCoord(i,j);
     }
 
     public ArrayList<Integer> getNeighbours(BoardCoord pos){
         ArrayList<Integer> output = new ArrayList<>();
         for (int i=-1; i<2; i++){
-            if (pos.i + i < 0 || pos.i + i>=width) {continue;}
             for (int j=-1; j<2; j++){
-                if (pos.j + j<0 || pos.j + j>=height) {continue;}
                 if (i==0 && j==0){continue;}
-                output.add(BoardCoord.FromCoord(pos.i + i, pos.j + j).ToIndex(width));
+                BoardCoord neighbour_coord = pos.addOffset(i, j);
+                output.add(neighbour_coord.toIndex(width));
             }
         }
         return output;
@@ -162,21 +161,21 @@ public class MineBoard extends JComponent {
             return;
         }
 
-        tiles.get(last_held.map(value -> value.ToIndex(width)).orElse(0)).setHeld(false);
-        int last_held_temp = last_held.map(value -> value.ToIndex(width)).orElse(-1);
+        tiles.get(last_held.map(value -> value.toIndex(width)).orElse(0)).setHeld(false);
+        int last_held_temp = last_held.map(value -> value.toIndex(width)).orElse(-1);
         last_held = Optional.empty();
 
-        if (!isValidCoord(pos)) {
+        if (!pos.isValid(width, height)) {
             return;
         }
 
         //check if release is in same place as press
-        if (pos.ToIndex(width) == last_held_temp){
+        if (pos.toIndex(width) == last_held_temp){
             //if so do the reveal logic
             //first check if this is first click and we should rearrange mines
             if (first_flip){
                 first_flip = false;
-                Tile tile = tiles.get(pos.ToIndex(width));
+                Tile tile = tiles.get(pos.toIndex(width));
                 while (tile.isMine()){
                     ReplaceMines();
                 }
@@ -264,20 +263,11 @@ public class MineBoard extends JComponent {
      * @return An optional value that contains the tile if the coordinate was valid, otherwise empty
      */
     public Optional<Tile> TryAccess(BoardCoord pos){
-        if (!isValidCoord(pos)) {
+        if (pos.isValid(width, height)) {
             return Optional.empty();
         } else {
-            return Optional.of(tiles.get(width * pos.j + pos.i));
+            return Optional.of(tiles.get(pos.toIndex(width)));
         }
-    }
-
-    /**
-     * Returns true if the given coordinate is a valid coordinate on the board
-     * @param pos The coordinate to check
-     * @return <code>true</code> if coordinate is valid, <code>false</code> otherwise
-     */
-    public boolean isValidCoord(BoardCoord pos){
-        return (pos.i>=0 && pos.i<width && pos.j>=0 && pos.j<height);
     }
 
     public int mineNeighbours(BoardCoord pos){
@@ -306,7 +296,7 @@ public class MineBoard extends JComponent {
         //or if it is revealed, and the number of flags around it is equal to the number of mines around it
         if (tile.isPresent() && !tile.get().isFlag()){
             if (tile.get().isHidden()){
-                CascadeFrom(pos.ToIndex(width));
+                CascadeFrom(pos.toIndex(width));
                 return;
             }
             //calculate number of flags around
@@ -360,7 +350,7 @@ public class MineBoard extends JComponent {
         //otherwise we are revealing a non mine tile, so we check for a 0
         if (tile.mineNeighbours() == 0) {
             //now cascade is there were no mine neighbours
-            for (int neighbour_index : getNeighbours(BoardCoord.FromIndex(index, width))) {
+            for (int neighbour_index : getNeighbours(BoardCoord.fromIndex(index, width))) {
                 CascadeFrom(neighbour_index);
             }
         }
@@ -398,7 +388,7 @@ public class MineBoard extends JComponent {
         for (int j = 0; j<height; j++){
             for (int i = 0; i<width; i++){
                 //should be present since i and j are in valid range
-                tiles.get(BoardCoord.FromCoord(i, j).ToIndex(width)).draw(g2d, i, j, draw_info);
+                tiles.get(BoardCoord.fromCoord(i, j).toIndex(width)).draw(g2d, i, j, draw_info);
             }
         }
     }
